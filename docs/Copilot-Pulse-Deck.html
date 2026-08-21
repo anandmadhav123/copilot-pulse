@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Copilot Pulse — Team Deck</title>
+<style>
+  :root{
+    --bg0:#0b1120; --bg1:#14203f; --bg2:#3b1066;
+    --cyan:#22d3ee; --cyan-soft:#67e8f9; --violet:#a78bfa;
+    --ink:#eaf2ff; --muted:#9fb2d6; --line:rgba(255,255,255,.10);
+    --card:rgba(255,255,255,.045); --card-brd:rgba(255,255,255,.10);
+    --good:#34d399; --warn:#fbbf24;
+    --font:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--font); color:var(--ink); overflow:hidden;
+    background:radial-gradient(1200px 700px at 12% 6%, #1c2c53 0%, transparent 55%),
+               radial-gradient(1100px 800px at 92% 100%, #3b1066 0%, transparent 55%),
+               var(--bg0);
+  }
+
+  /* ---------- deck framework ---------- */
+  .deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute; inset:0; display:none;
+    padding:6vh 8vw; flex-direction:column; justify-content:center;
+    animation:fade .55s ease both;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+  .kicker{
+    display:inline-flex;align-items:center;gap:9px;color:var(--cyan-soft);
+    font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.78rem;margin-bottom:18px;
+  }
+  .kicker::before{content:"";width:26px;height:2px;background:linear-gradient(90deg,var(--cyan),transparent);border-radius:2px}
+  h1{font-size:clamp(2.4rem,6vw,4.6rem);line-height:1.02;letter-spacing:-.02em;font-weight:800}
+  h2{font-size:clamp(1.7rem,3.6vw,2.9rem);line-height:1.08;letter-spacing:-.01em;font-weight:800;margin-bottom:24px}
+  .lead{font-size:clamp(1.05rem,1.7vw,1.4rem);color:var(--muted);max-width:52ch;line-height:1.55}
+  .grad{background:linear-gradient(100deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* ---------- progress + nav ---------- */
+  .bar{position:fixed;left:0;top:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--violet));width:0;transition:width .4s ease;z-index:50;box-shadow:0 0 16px var(--cyan)}
+  .foot{position:fixed;bottom:22px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 8vw;z-index:40;color:var(--muted);font-size:.82rem}
+  .brandmini{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--ink);opacity:.9}
+  .dots{display:flex;gap:7px}
+  .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:.25s}
+  .dot.on{background:var(--cyan);box-shadow:0 0 10px var(--cyan);transform:scale(1.25)}
+  .hint{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);color:var(--muted);font-size:.78rem;opacity:.6;z-index:40}
+
+  /* ---------- reusable ---------- */
+  .grid{display:grid;gap:20px}
+  .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .card{
+    background:var(--card);border:1px solid var(--card-brd);border-radius:18px;padding:26px 24px;
+    backdrop-filter:blur(8px);transition:.3s;position:relative;overflow:hidden;
+  }
+  .card:hover{transform:translateY(-4px);border-color:rgba(103,232,249,.35);box-shadow:0 18px 50px -20px rgba(34,211,238,.35)}
+  .card .ico{font-size:1.9rem;margin-bottom:14px;display:block}
+  .card h3{font-size:1.15rem;margin-bottom:8px;letter-spacing:-.01em}
+  .card p{color:var(--muted);font-size:.96rem;line-height:1.5}
+  .tag{display:inline-block;padding:5px 12px;border-radius:999px;font-size:.74rem;font-weight:700;letter-spacing:.04em}
+  .t-light{background:rgba(52,211,153,.15);color:#6ee7b7;border:1px solid rgba(52,211,153,.3)}
+  .t-med{background:rgba(251,191,36,.15);color:#fcd34d;border:1px solid rgba(251,191,36,.3)}
+  .t-heavy{background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)}
+  .stat{font-size:clamp(2.2rem,4vw,3.4rem);font-weight:800;line-height:1;letter-spacing:-.02em}
+  .stat.grad{filter:drop-shadow(0 4px 18px rgba(34,211,238,.25))}
+  .statlbl{color:var(--muted);font-size:.9rem;margin-top:8px}
+
+  /* pulse waveform motif */
+  .wave{position:absolute;inset:0;pointer-events:none;opacity:.5;z-index:0}
+  .wave path{stroke:var(--cyan);stroke-width:2.2;fill:none;filter:drop-shadow(0 0 8px var(--cyan));
+    stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 3.4s ease forwards infinite}
+  @keyframes draw{0%{stroke-dashoffset:1400}55%{stroke-dashoffset:0}100%{stroke-dashoffset:-1400}}
+
+  /* flow */
+  .flow{display:flex;align-items:stretch;gap:14px;flex-wrap:wrap;margin-top:8px}
+  .node{flex:1;min-width:150px;background:var(--card);border:1px solid var(--card-brd);border-radius:16px;padding:20px 18px;text-align:center}
+  .node .n{font-size:1.6rem;margin-bottom:8px}
+  .node small{color:var(--muted);display:block;margin-top:4px;font-size:.82rem}
+  .arrow{align-self:center;color:var(--cyan);font-size:1.5rem;opacity:.7}
+
+  /* escalation ladder */
+  .ladder{display:flex;flex-direction:column;gap:14px;max-width:560px}
+  .rung{display:flex;align-items:center;gap:18px;background:var(--card);border:1px solid var(--card-brd);border-radius:14px;padding:16px 20px}
+  .rung .lvl{font-weight:800;font-size:1.05rem;min-width:74px}
+  .rung .up{margin-left:auto;color:var(--cyan);font-weight:700}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:6px}
+  ul.clean li{display:flex;gap:14px;align-items:flex-start;font-size:1.05rem;line-height:1.5}
+  ul.clean li::before{content:"▹";color:var(--cyan);font-weight:800;margin-top:2px}
+  .big-list li{font-size:1.15rem}
+
+  .split{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+  .center{align-items:center;text-align:center}
+  .logo-lg{width:112px;height:112px;border-radius:26px;display:grid;place-items:center;margin-bottom:30px;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid rgba(103,232,249,.3);
+    box-shadow:0 20px 60px -18px rgba(59,16,102,.8)}
+  .logo-lg svg{width:74px;height:74px}
+  .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+
+  code{background:rgba(255,255,255,.08);padding:2px 8px;border-radius:6px;font-family:'SF Mono',Consolas,monospace;font-size:.9em;color:var(--cyan-soft)}
+  .quote{font-size:clamp(1.3rem,2.6vw,2rem);line-height:1.4;font-weight:600;max-width:24ch}
+  .muted{color:var(--muted)}
+
+  /* algorithm slide */
+  .formula{background:rgba(0,0,0,.28);border:1px solid var(--card-brd);border-radius:16px;padding:22px 24px;font-family:'SF Mono',Consolas,monospace;margin-top:6px}
+  .formula .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:1.05rem;line-height:1.9}
+  .term{padding:4px 12px;border-radius:8px;font-weight:700}
+  .w-int{background:rgba(167,139,250,.18);color:#c4b5fd} .w-kw{background:rgba(34,211,238,.15);color:#67e8f9}
+  .w-code{background:rgba(52,211,153,.15);color:#6ee7b7} .w-boost{background:rgba(251,191,36,.14);color:#fcd34d}
+  .op{color:var(--muted);font-weight:700}
+  .thresh{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+  .thresh .t{flex:1;min-width:150px;text-align:center;border-radius:14px;padding:16px;border:1px solid var(--card-brd)}
+  .steps{counter-reset:s;display:flex;flex-direction:column;gap:12px;margin-top:4px}
+  .steps li{list-style:none;display:flex;gap:16px;align-items:flex-start}
+  .steps li::before{counter-increment:s;content:counter(s);flex:none;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#04121f;font-weight:800;display:grid;place-items:center;font-size:.95rem}
+  .steps b{color:var(--ink)} .steps small{color:var(--muted);display:block;font-size:.9rem;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide active center" style="align-items:center;text-align:center">
+    <svg class="wave" viewBox="0 0 1400 300" preserveAspectRatio="none">
+      <path d="M0,150 L420,150 L470,150 L520,60 L570,240 L620,110 L670,150 L1400,150"/>
+    </svg>
+    <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center">
+      <div class="logo-lg">
+        <svg viewBox="0 0 100 100" fill="none">
+          <path d="M8,54 L34,54 L42,54 L48,24 L55,78 L61,42 L66,54 L92,54"
+            stroke="#22d3ee" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+            style="filter:drop-shadow(0 0 6px #22d3ee)"/>
+        </svg>
+      </div>
+      <h1>Copilot <span class="grad">Pulse</span></h1>
+      <p class="lead" style="margin-top:20px;font-size:1.35rem">
+        The intelligent model router for GitHub Copilot.<br>
+        <span style="color:var(--ink)">Right model. Every prompt. Automatically.</span>
+      </p>
+      <div class="pill-row" style="justify-content:center">
+        <span class="tag t-light">Auto-routing</span>
+        <span class="tag t-med">Auto-escalation</span>
+        <span class="tag t-heavy">Real savings</span>
+      </div>
+      <p class="muted" style="margin-top:18px;font-size:.85rem;letter-spacing:.04em">Requires VS Code 1.95+ · GitHub Copilot &amp; Copilot Chat</p>
+    </div>
+  </section>
+
+  <!-- 2 · PROBLEM -->
+  <section class="slide">
+    <div class="kicker">The problem</div>
+    <h2>Copilot has many models.<br>You're probably using <span class="grad">one</span>.</h2>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><span class="ico">💸</span><h3>Overpaying</h3><p>Premium credits burned on "rename this variable" and other trivial asks.</p></div>
+      <div class="card"><span class="ico">🐢</span><h3>Under-powering</h3><p>A weak model wrestling a "design a distributed system" request — and failing.</p></div>
+      <div class="card"><span class="ico">🖱️</span><h3>Manual switching</h3><p>Nobody changes models per prompt. So the picker just sits on one, all day.</p></div>
+    </div>
+    <p class="lead" style="margin-top:30px">The right model exists in your subscription. You're just not reaching for it.</p>
+  </section>
+
+  <!-- 3 · SOLUTION -->
+  <section class="slide center" style="align-items:center;text-align:center">
+    <div class="kicker" style="align-self:center">The solution</div>
+    <h1 style="font-size:clamp(2rem,4.6vw,3.4rem);max-width:20ch">
+      Pulse reads every prompt and routes it to the <span class="grad">optimal model</span> — then upgrades if it struggles.
+    </h1>
+    <p class="lead" style="margin:26px auto 0">One agent. Every tier. Zero manual model-switching. No API key required.</p>
+  </section>
+
+  <!-- 4 · HOW IT WORKS -->
+  <section class="slide">
+    <div class="kicker">How it works</div>
+    <h2>A scoring engine in front of your models</h2>
+    <div class="flow">
+      <div class="node"><div class="n">💬</div><b>Prompt</b><small>+ conversation & context</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="n">🧠</div><b>Score 0–10</b><small>intent · structure · context</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="n">🎯</div><b>Pick tier</b><small>Light / Medium / Heavy</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="n">⚡</div><b>Route</b><small>to your Copilot model</small></div>
+      <div class="arrow">→</div>
+      <div class="node" style="border-color:rgba(103,232,249,.4)"><div class="n">⬆️</div><b>Escalate</b><small>if it gets stuck</small></div>
+    </div>
+    <p class="lead" style="margin-top:32px">Every step runs <b style="color:var(--ink)">locally</b>. Your prompt only ever reaches the provider you already use.</p>
+  </section>
+
+  <!-- 4b · DYNAMIC DISCOVERY -->
+  <section class="slide">
+    <div class="kicker">Feature · Zero configuration</div>
+    <h2>It learns <span class="grad">your</span> models automatically</h2>
+    <div class="grid g3" style="margin-top:8px">
+      <div class="card"><span class="ico">🔍</span><h3>Discovers at load</h3><p>On startup it queries the models your Copilot subscription actually grants — no hardcoded list.</p></div>
+      <div class="card"><span class="ico">🏗️</span><h3>Builds tiers dynamically</h3><p>Each model is scored by capability and sorted into Light / Medium / Heavy at runtime.</p></div>
+      <div class="card"><span class="ico">🔄</span><h3>Stays in sync</h3><p>Sign in, change plan, or a new model appears — Pulse re-discovers and re-tiers instantly.</p></div>
+    </div>
+    <div class="card" style="margin-top:22px;background:rgba(34,211,238,.06)">
+      <p class="muted" style="font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px">Example — tiers built live from a real subscription</p>
+      <div class="flow" style="gap:12px">
+        <div class="node" style="text-align:left"><span class="tag t-light">LIGHT</span><small style="margin-top:10px"><code>gpt-4o-mini</code><br><code>gemini-flash</code></small></div>
+        <div class="node" style="text-align:left"><span class="tag t-med">MEDIUM</span><small style="margin-top:10px"><code>o3-mini</code><br><code>gpt-4o</code></small></div>
+        <div class="node" style="text-align:left"><span class="tag t-heavy">HEAVY</span><small style="margin-top:10px"><code>o1</code> · <code>gpt-4.1</code><br><code>claude sonnet</code></small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · TIERING -->
+  <section class="slide">
+    <div class="kicker">Feature · Intelligent tiering</div>
+    <h2>Tiers built from <span class="grad">your</span> subscription</h2>
+    <div class="grid g3" style="margin-top:8px">
+      <div class="card">
+        <span class="tag t-light">LIGHT</span>
+        <h3 style="margin-top:14px">Fast & cheap</h3>
+        <p>Lookups, small edits, boilerplate. <br><code>gpt-4o-mini</code> · <code>flash</code></p>
+      </div>
+      <div class="card">
+        <span class="tag t-med">MEDIUM</span>
+        <h3 style="margin-top:14px">Balanced</h3>
+        <p>Focused coding & debugging. <br><code>o3-mini</code> · <code>gpt-4o</code> · <code>sonnet</code></p>
+      </div>
+      <div class="card">
+        <span class="tag t-heavy">HEAVY</span>
+        <h3 style="margin-top:14px">Maximum power</h3>
+        <p>Architecture, refactors, hard algorithms. <br><code>o1</code> · <code>gpt-4.1</code> · <code>opus</code></p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:28px">Scoring weighs <b style="color:var(--ink)">intent, structure, attachments, conversation history</b> and the tool surface — not just keywords.</p>
+  </section>
+
+  <!-- 5b · THE ALGORITHM -->
+  <section class="slide">
+    <div class="kicker">Under the hood · The routing algorithm</div>
+    <h2>How a prompt finds its model</h2>
+    <div class="split" style="grid-template-columns:1fr 1fr;gap:40px;align-items:start">
+      <div>
+        <ol class="steps">
+          <li><div><b>Extract features</b><small>intent type, keyword density, code &amp; stack-traces, requirements, attachments, conversation depth, tool count</small></div></li>
+          <li><div><b>Weighted complexity score (0–10)</b><small>each signal contributes independently — fully explainable</small></div></li>
+          <li><div><b>Map score → tier</b><small>then pick the best model in that tier from your subscription</small></div></li>
+          <li><div><b>Apply guardrails</b><small>tool-calling floor · conversation stickiness · escalation floor</small></div></li>
+        </ol>
+      </div>
+      <div>
+        <p class="muted" style="font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">The score</p>
+        <div class="formula">
+          <div class="row">
+            <span class="term w-int">intent × 0.5</span><span class="op">+</span>
+            <span class="term w-kw">keywords × 0.3</span><span class="op">+</span>
+            <span class="term w-code">code × 0.2</span>
+          </div>
+          <div class="row"><span class="op">+ bounded boosts →</span>
+            <span class="term w-boost">structure</span>
+            <span class="term w-boost">context</span>
+            <span class="term w-boost">tools</span>
+            <span class="term w-boost">recovery</span>
+          </div>
+          <div class="row" style="margin-top:6px;color:var(--muted)"><span class="op">clamp to</span> <b style="color:var(--ink)">0 … 10</b></div>
+        </div>
+        <div class="thresh">
+          <div class="t t-light" style="background:rgba(52,211,153,.08)"><b style="font-size:1.3rem">&lt; 4.0</b><br><span class="tag t-light" style="margin-top:6px">LIGHT</span></div>
+          <div class="t t-med" style="background:rgba(251,191,36,.08)"><b style="font-size:1.3rem">4.0 – 6.5</b><br><span class="tag t-med" style="margin-top:6px">MEDIUM</span></div>
+          <div class="t t-heavy" style="background:rgba(167,139,250,.08)"><b style="font-size:1.3rem">≥ 6.5</b><br><span class="tag t-heavy" style="margin-top:6px">HEAVY</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · ESCALATION (headline) -->
+  <section class="slide">
+    <div class="split">
+      <div>
+        <div class="kicker">Feature · The headline</div>
+        <h2>It notices when a cheap model is <span class="grad">stuck</span> — and upgrades itself</h2>
+        <ul class="clean">
+          <li>Repeats the same tool call with no progress</li>
+          <li>Tool calls keep failing</li>
+          <li>Runs out of context window</li>
+          <li>Returns empty / malformed output</li>
+          <li>Says "I can't do this" — or you say "still wrong"</li>
+        </ul>
+      </div>
+      <div>
+        <div class="ladder">
+          <div class="rung"><span class="lvl t-light" style="background:none;border:none;color:#6ee7b7">LIGHT</span><span class="muted">starts here</span></div>
+          <div style="text-align:center;color:var(--cyan);font-size:1.3rem">↓ can't finish</div>
+          <div class="rung"><span class="lvl" style="color:#fcd34d">MEDIUM</span><span class="muted">retries, full context</span><span class="up">⬆️</span></div>
+          <div style="text-align:center;color:var(--cyan);font-size:1.3rem">↓ still stuck</div>
+          <div class="rung" style="border-color:rgba(167,139,250,.4)"><span class="lvl" style="color:#c4b5fd">HEAVY</span><span class="muted">solves it</span><span class="up">⬆️</span></div>
+        </div>
+        <p class="muted" style="margin-top:16px;font-size:.9rem">Capped per conversation — never runs away on cost.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · DASHBOARD / SAVINGS -->
+  <section class="slide">
+    <div class="kicker">Feature · Live dashboard</div>
+    <h2>See exactly what you're saving</h2>
+    <div class="grid g4" style="margin-top:8px">
+      <div class="card center"><div class="stat grad">0–10</div><div class="statlbl">complexity score, explained per signal</div></div>
+      <div class="card center"><div class="stat grad">%</div><div class="statlbl">savings rate — cheap vs. premium</div></div>
+      <div class="card center"><div class="stat grad">⭐</div><div class="statlbl">premium credits used vs. saved</div></div>
+      <div class="card center"><div class="stat grad">▤</div><div class="statlbl">live log of every routing decision</div></div>
+    </div>
+    <p class="lead" style="margin-top:28px">Every decision is <b style="color:var(--ink)">transparent</b> — the score breakdown behind each route is one click away.</p>
+  </section>
+
+  <!-- 8 · RELIABILITY -->
+  <section class="slide">
+    <div class="kicker">Built to be trusted</div>
+    <h2>Robust when things go wrong</h2>
+    <div class="grid g2" style="margin-top:8px">
+      <div class="card"><span class="ico">🩹</span><h3>Never stops mid-answer</h3><p>Interrupted streams recover and finish instead of dying silently.</p></div>
+      <div class="card"><span class="ico">📦</span><h3>Handles oversized prompts</h3><p>Too big for the model? It shrinks the request step-by-step rather than failing.</p></div>
+      <div class="card"><span class="ico">🛡️</span><h3>Survives hostile input</h3><p>Empty, giant, unicode, injection — routed safely, never crashes the host.</p></div>
+      <div class="card"><span class="ico">🔁</span><h3>Finishes long tasks</h3><p>Multi-step build → fix → verify loops run to completion, with a safety budget.</p></div>
+    </div>
+  </section>
+
+  <!-- 9 · QUALITY -->
+  <section class="slide center" style="align-items:center;text-align:center">
+    <div class="kicker" style="align-self:center">Quality bar</div>
+    <h2>Certified before shipping</h2>
+    <div class="grid g4" style="margin-top:6px;width:100%">
+      <div class="card center"><div class="stat grad">314</div><div class="statlbl">automated tests passing</div></div>
+      <div class="card center"><div class="stat grad">12</div><div class="statlbl">test suites</div></div>
+      <div class="card center"><div class="stat grad">0</div><div class="statlbl">runtime dependencies (no CVE surface)</div></div>
+      <div class="card center"><div class="stat grad">100%</div><div class="statlbl">green — incl. adversarial & concurrency</div></div>
+    </div>
+    <p class="lead" style="margin:28px auto 0">Complexity spectrum · hostile-input fuzzing · concurrency · escalation under sustained failure · metrics accuracy · a dedicated pre-release certification suite.</p>
+  </section>
+
+  <!-- 10 · HOW TO USE -->
+  <section class="slide">
+    <div class="kicker">Try it in 30 seconds</div>
+    <h2>No config. No API key.</h2>
+    <div class="grid g3" style="margin-top:8px">
+      <div class="card"><div class="stat grad" style="font-size:2rem">1</div><h3 style="margin-top:12px">Pick the mode</h3><p>Select <b style="color:var(--ink)">Copilot Pulse Agent</b> in the Chat view.</p></div>
+      <div class="card"><div class="stat grad" style="font-size:2rem">2</div><h3 style="margin-top:12px">Mention once</h3><p>Type <code>@copilotpulse</code> at the start — it stays sticky.</p></div>
+      <div class="card"><div class="stat grad" style="font-size:2rem">3</div><h3 style="margin-top:12px">Just chat</h3><p>Every prompt auto-routes across your Copilot models.</p></div>
+    </div>
+    <div class="pill-row" style="margin-top:24px">
+      <span class="tag t-light">✔ VS Code 1.95+</span>
+      <span class="tag t-med">✔ GitHub Copilot + Copilot Chat</span>
+      <span class="tag t-heavy">✔ No API key needed</span>
+    </div>
+    <p class="lead" style="margin-top:20px">Optional: bring your own OpenAI-compatible endpoint for the model-picker experience <span class="muted">(needs VS Code Insiders / proposed API)</span>.</p>
+  </section>
+
+  <!-- 11 · ROADMAP -->
+  <section class="slide">
+    <div class="kicker">What's next</div>
+    <h2>Roadmap</h2>
+    <div class="grid g3" style="margin-top:8px">
+      <div class="card"><span class="tag t-light">NEAR</span><h3 style="margin-top:14px">Outcome learning</h3><p>Remember which tiers actually solve which task types, and adapt scores over time.</p></div>
+      <div class="card"><span class="tag t-med">NEXT</span><h3 style="margin-top:14px">Silent escalation everywhere</h3><p>Extend auto-upgrade to the model-picker path with commit-window buffering.</p></div>
+      <div class="card"><span class="tag t-heavy">LATER</span><h3 style="margin-top:14px">Team analytics</h3><p>Aggregate savings dashboards & shared routing policies across a team.</p></div>
+    </div>
+  </section>
+
+  <!-- 12 · CLOSE -->
+  <section class="slide center" style="align-items:center;text-align:center">
+    <svg class="wave" viewBox="0 0 1400 300" preserveAspectRatio="none">
+      <path d="M0,150 L420,150 L470,150 L520,60 L570,240 L620,110 L670,150 L1400,150"/>
+    </svg>
+    <div style="position:relative;z-index:2">
+      <div class="logo-lg" style="margin:0 auto 30px">
+        <svg viewBox="0 0 100 100" fill="none">
+          <path d="M8,54 L34,54 L42,54 L48,24 L55,78 L61,42 L66,54 L92,54"
+            stroke="#22d3ee" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+            style="filter:drop-shadow(0 0 6px #22d3ee)"/>
+        </svg>
+      </div>
+      <h1 style="font-size:clamp(2rem,5vw,3.6rem)">Stop picking models.<br><span class="grad">Start shipping.</span></h1>
+      <p class="lead" style="margin:24px auto 0">Copilot Pulse — right model, every prompt, automatically.</p>
+      <div class="pill-row" style="justify-content:center;margin-top:28px">
+        <span class="tag t-light">Questions?</span>
+        <span class="tag t-med">Let's demo it live</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="foot">
+  <div class="brandmini">
+    <svg viewBox="0 0 100 100" width="22" height="22" fill="none"><path d="M8,54 L34,54 L42,54 L48,24 L55,78 L61,42 L66,54 L92,54" stroke="#22d3ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Copilot Pulse
+  </div>
+  <div class="dots" id="dots"></div>
+  <div id="counter">01 / 12</div>
+</div>
+<div class="hint">← → or Space to navigate · F for fullscreen</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const dotsWrap=document.getElementById('dots');
+  const bar=document.getElementById('bar');
+  const counter=document.getElementById('counter');
+  let i=0;
+  slides.forEach((_,n)=>{const d=document.createElement('div');d.className='dot';d.onclick=()=>go(n);dotsWrap.appendChild(d)});
+  const dots=[...document.querySelectorAll('.dot')];
+  const pad=n=>String(n+1).padStart(2,'0');
+  function go(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    dots.forEach((d,k)=>d.classList.toggle('on',k===i));
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    counter.textContent=pad(i)+' / '+pad(slides.length-1);
+  }
+  function next(){go(i+1)} function prev(){go(i-1)}
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();next()}
+    else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev()}
+    else if(e.key==='Home')go(0)
+    else if(e.key==='End')go(slides.length-1)
+    else if(e.key.toLowerCase()==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+  });
+  // click right/left half to advance; swipe on touch
+  document.getElementById('deck').addEventListener('click',e=>{ if(e.target.closest('.dot'))return; e.clientX> window.innerWidth/2?next():prev(); });
+  let sx=0; addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+  addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>50)(dx<0?next:prev)()},{passive:true});
+  go(0);
+</script>
+</body>
+</html>
+
+
+
+
+
+

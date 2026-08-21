@@ -1,0 +1,17 @@
+{
+  "//": "Offline build config: used when @types/vscode / @types/node cannot be installed.",
+  "//2": "Relaxes strictness because src/offline-shims.d.ts types everything as `any`.",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2022",
+    "outDir": "out",
+    "lib": ["ES2022"],
+    "sourceMap": true,
+    "rootDir": "src",
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules", ".vscode-test", "src/test"]
+}
+

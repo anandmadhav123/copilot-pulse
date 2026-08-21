@@ -1,0 +1,220 @@
+{
+  "name": "copilot-pulse-vscode",
+  "displayName": "Copilot Pulse",
+  "description": "⚡ Intelligent Model Router & Savings Engine for GitHub Copilot in VS Code",
+  "version": "1.0.0",
+  "publisher": "copilot-pulse",
+  "license": "MIT",
+  "icon": "icon.png",
+  "author": {
+    "name": "Copilot Pulse"
+  },
+  "homepage": "https://github.com/your-org/copilot-pulse-vscode#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/copilot-pulse-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/copilot-pulse-vscode/issues"
+  },
+  "qna": "marketplace",
+  "keywords": [
+    "copilot",
+    "github copilot",
+    "model router",
+    "ai",
+    "llm",
+    "cost savings",
+    "agent",
+    "chat"
+  ],
+  "galleryBanner": {
+    "color": "#14203f",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "AI",
+    "Machine Learning",
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "enabledApiProposals": [
+    "languageModelChatProvider",
+    "chatProvider"
+  ],
+  "contributes": {
+    "languageModelChatProviders": [
+      {
+        "vendor": "copilot-pulse",
+        "displayName": "Copilot Pulse (Smart Router)"
+      },
+      {
+        "vendor": "copilot-pulse-agent",
+        "displayName": "Copilot Pulse Agent"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "copilotPulse.copilotpulse",
+        "name": "copilotpulse",
+        "fullName": "Copilot Pulse Agent",
+        "description": "⚡ Autonomous Model Router & Agent: Dynamically analyzes prompt & context, routes to the optimal LLM (Light/Medium/Heavy), and executes tool/function calling seamlessly.",
+        "isSticky": true
+      }
+    ],
+    "commands": [
+      {
+        "command": "copilotPulse.openDashboard",
+        "title": "Copilot Pulse: Open Dashboard",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "copilotPulse.testConnection",
+        "title": "Copilot Pulse: Test Connection",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "copilotPulse.showModels",
+        "title": "Copilot Pulse: Show Supported Models & Tiers",
+        "icon": "$(list-tree)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "copilot-pulse-container",
+          "title": "Copilot Pulse",
+          "icon": "$(zap)"
+        }
+      ]
+    },
+    "views": {
+      "copilot-pulse-container": [
+        {
+          "type": "webview",
+          "id": "copilotPulse.dashboardView",
+          "name": "Metrics & Savings"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Copilot Pulse",
+      "properties": {
+        "copilotPulse.baseUrl": {
+          "type": "string",
+          "default": "https://openrouter.ai/api/v1",
+          "description": "Base URL of your OpenAI-compatible LLM endpoint (e.g. OpenRouter)."
+        },
+        "copilotPulse.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API Key for your OpenAI-compatible LLM endpoint."
+        },
+        "copilotPulse.cheapModel": {
+          "type": "string",
+          "default": "openai/gpt-4o-mini",
+          "description": "Model to use for low/medium complexity prompts."
+        },
+        "copilotPulse.strongModel": {
+          "type": "string",
+          "default": "openai/gpt-4o",
+          "description": "Model to use for high complexity prompts."
+        },
+        "copilotPulse.useDynamicTiers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dynamically route across all models available on your provider."
+        },
+        "copilotPulse.threshold": {
+          "type": "number",
+          "default": 6.5,
+          "description": "High complexity score threshold (0..10)."
+        },
+        "copilotPulse.lowThreshold": {
+          "type": "number",
+          "default": 4.0,
+          "description": "Low complexity score threshold (0..10)."
+        },
+        "copilotPulse.routing.v2": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use the context-aware routing engine (conversation stickiness, attachment/structure signals, tool-aware tiering). Disable to fall back to the legacy keyword-only scorer."
+        },
+        "copilotPulse.routing.stickiness": {
+          "type": "number",
+          "default": 2.5,
+          "description": "How much complexity a conversation may shed per turn (~2.5 = one tier). Higher values make routing drop back to cheaper models faster on short follow-ups."
+        },
+        "copilotPulse.maxAgentTurns": {
+          "type": "number",
+          "default": 25,
+          "description": "Maximum tool round-trips the @copilotpulse agent performs before pausing and asking you to continue."
+        },
+        "copilotPulse.escalation.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically retry on a stronger model when the selected model cannot complete the task."
+        },
+        "copilotPulse.escalation.maxEscalationsPerConversation": {
+          "type": "number",
+          "default": 2,
+          "description": "Cost guard: maximum number of tier escalations allowed within a single conversation."
+        },
+        "copilotPulse.escalation.stuckLoopThreshold": {
+          "type": "number",
+          "default": 2,
+          "description": "Consecutive identical tool calls before the agent is considered stuck and is escalated."
+        },
+        "copilotPulse.escalation.toolErrorThreshold": {
+          "type": "number",
+          "default": 3,
+          "description": "Consecutive tool failures before escalating to a stronger model."
+        },
+        "copilotPulse.escalation.triggers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "hard_error",
+              "stuck_tool_loop",
+              "repeated_tool_errors",
+              "empty_response",
+              "malformed_tool_call",
+              "self_declared_incapacity",
+              "user_dissatisfaction"
+            ]
+          },
+          "default": [
+            "hard_error",
+            "stuck_tool_loop",
+            "repeated_tool_errors",
+            "empty_response",
+            "malformed_tool_call",
+            "self_declared_incapacity",
+            "user_dissatisfaction"
+          ],
+          "description": "Which failure signals are allowed to trigger an automatic escalation."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "compile:offline": "tsc -p ./tsconfig.offline.json",
+    "watch": "tsc -watch -p ./",
+    "test": "node test_ask_and_agent_modes.mjs",
+    "test:all": "node test_ask_and_agent_modes.mjs && node src/test/comprehensive.test.mjs && node test_agent_tools.mjs && node test_proxy_routing.js && node test_sse_fragmentation.js && node test_abrupt_stop.js && node test_routing_v2.js && node test_agent_escalation.mjs && node test_byok_gating.js && node test_proxy_robustness.js && node test_prerelease.mjs && node test_agent_long_task.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.95.0",
+    "typescript": "^5.1.6"
+  }
+}
