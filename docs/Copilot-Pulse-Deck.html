@@ -255,6 +255,25 @@
   .dash-query{font-weight:600; color:var(--ink); font-size:.88rem}
   .dash-breakdown{font-family:'SF Mono',Consolas,monospace; font-size:.73rem; color:var(--muted); margin-top:6px; display:flex; gap:12px; flex-wrap:wrap}
   .dash-breakdown b{color:var(--cyan-soft)}
+
+  /* ---------- Comparison Table Slide ---------- */
+  .comp-table{
+    width:100%; border-collapse:separate; border-spacing:0; margin-top:14px;
+    background:rgba(13,21,39,.65); border:1px solid rgba(103,232,249,.24); border-radius:14px;
+    overflow:hidden; font-size:.88rem; backdrop-filter:blur(8px);
+  }
+  .comp-table th{
+    background:rgba(255,255,255,.06); padding:12px 18px; text-align:left;
+    font-weight:800; letter-spacing:.04em; color:var(--ink);
+    border-bottom:1px solid rgba(255,255,255,.1);
+  }
+  .comp-table td{
+    padding:11px 18px; border-bottom:1px solid rgba(255,255,255,.05); color:var(--muted);
+  }
+  .comp-table tr:last-child td{border-bottom:none}
+  .comp-table tr:hover td{background:rgba(34,211,238,.045)}
+  .comp-no{color:#f87171; font-weight:700}
+  .comp-yes{color:#6ee7b7; font-weight:700}
 </style>
 </head>
 <body>
@@ -322,6 +341,50 @@
       Pulse reads every prompt and routes it to the <span class="grad">optimal model</span> — then upgrades if it struggles.
     </h1>
     <p class="lead" style="margin:26px auto 0">One agent. Every tier. Zero manual model-switching. No API key required.</p>
+  </section>
+
+  <!-- 3b · COMPARISON WITH NATIVE AUTO -->
+  <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
+    <div class="kicker">Why Copilot Pulse</div>
+    <h2 style="margin-bottom:12px">Copilot Pulse vs. GitHub <span class="grad">Native "Auto"</span></h2>
+    <p class="lead" style="margin-bottom:16px;max-width:65ch">Why Pulse goes far beyond Copilot's built-in model selector:</p>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>GitHub Native "Auto"</th>
+          <th>⚡ Copilot Pulse Extension</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Routing Intelligence</b></td>
+          <td>Server-side black box heuristics</td>
+          <td><b style="color:var(--cyan-soft)">Local 0–10 explainable scoring engine</b></td>
+        </tr>
+        <tr>
+          <td><b>Self-Healing Escalation</b></td>
+          <td><span class="comp-no">✕ None</span> — fails or stops if model stalls</td>
+          <td><span class="comp-yes">✓ Auto-upgrades Light → Medium → Heavy on loops</span></td>
+        </tr>
+        <tr>
+          <td><b>Explainable Score Breakdown</b></td>
+          <td><span class="comp-no">✕ None</span> — only reveals model name after turn</td>
+          <td><span class="comp-yes">✓ Live signal weights</span> (intent, code, history, tools)</td>
+        </tr>
+        <tr>
+          <td><b>Agent Mode Tool Floor</b></td>
+          <td><span class="comp-no">✕ Unpredictable</span> — risks malformed tool JSON</td>
+          <td><span class="comp-yes">✓ Enforces Medium floor</span> for tool execution safety</td>
+        </tr>
+        <tr>
+          <td><b>Real-Time Analytics Dashboard</b></td>
+          <td><span class="comp-no">✕ No metrics</span> or savings tracking</td>
+          <td><span class="comp-yes">✓ Live IDE sidebar dashboard</span> (Savings %, Credits, Log)</td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <!-- 4 · HOW IT WORKS -->
