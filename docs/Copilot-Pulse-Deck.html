@@ -27,16 +27,113 @@
   .slide{
     position:absolute; inset:0; display:none;
     padding:6vh 8vw; flex-direction:column; justify-content:center;
-    animation:fade .55s ease both;
+    animation:fade .55s ease both; overflow:hidden;
   }
   .slide.active{display:flex}
+  .slide > * {position:relative; z-index:2}
   @keyframes fade{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+  /* ---------- top floating copilot pulse badge ---------- */
+  .top-pulse-badge{
+    position:fixed; top:20px; right:8vw; z-index:45;
+    display:flex; align-items:center; gap:10px;
+    padding:6px 14px 6px 12px;
+    background:rgba(15, 25, 48, 0.65);
+    border:1px solid rgba(103,232,249,.3);
+    border-radius:999px;
+    backdrop-filter:blur(12px);
+    box-shadow:0 6px 24px -4px rgba(0,0,0,.5), inset 0 0 12px rgba(34,211,238,.12);
+    animation:badge-float 4s ease-in-out infinite alternate;
+  }
+  @keyframes badge-float{
+    0%{transform:translateY(0)}
+    100%{transform:translateY(-3px)}
+  }
+  .top-pulse-dot-wrap{
+    position:relative; width:10px; height:10px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .top-pulse-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 10px var(--cyan);
+  }
+  .top-pulse-ring{
+    position:absolute; width:18px; height:18px; border-radius:50%;
+    border:1.5px solid var(--cyan); opacity:.8;
+    animation:pulse-ripple 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  }
+  @keyframes pulse-ripple{
+    0%{transform:scale(0.3); opacity:0.9}
+    80%,100%{transform:scale(1.7); opacity:0}
+  }
+  .top-pulse-svg{
+    width:56px; height:20px; overflow:visible;
+  }
+  .top-pulse-svg path{
+    stroke:var(--cyan); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; fill:none;
+    filter:drop-shadow(0 0 6px var(--cyan));
+    stroke-dasharray:160; stroke-dashoffset:160;
+    animation:top-pulse-draw 2.4s ease-in-out infinite;
+  }
+  @keyframes top-pulse-draw{
+    0%{stroke-dashoffset:160; opacity:.3}
+    30%{opacity:1}
+    60%{stroke-dashoffset:0; opacity:1}
+    90%,100%{stroke-dashoffset:-160; opacity:.3}
+  }
+  .top-pulse-label{
+    font-size:.72rem; font-weight:800; letter-spacing:.14em;
+    color:var(--ink); text-transform:uppercase;
+  }
+  .top-pulse-label .grad{
+    background:linear-gradient(100deg,var(--cyan),var(--violet));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  /* ---------- ambient background wave for slides ---------- */
+  .slide-bg-wave{
+    position:absolute; bottom:60px; left:0; right:0; width:100%; height:130px;
+    pointer-events:none; opacity:.22; z-index:1;
+  }
+  .slide-bg-wave path{
+    stroke:var(--cyan); stroke-width:2.2; fill:none;
+    filter:drop-shadow(0 0 8px var(--cyan));
+    stroke-dasharray:1400; stroke-dashoffset:1400;
+    animation:slide-wave-draw 3.8s ease-in-out infinite;
+  }
+  @keyframes slide-wave-draw{
+    0%{stroke-dashoffset:1400}
+    50%{stroke-dashoffset:0}
+    100%{stroke-dashoffset:-1400}
+  }
+
+  /* ---------- brand mini footer icon animation ---------- */
+  .brandmini svg path{
+    stroke-dasharray:120; stroke-dashoffset:120;
+    animation:brand-pulse-draw 2.8s ease-in-out infinite;
+    filter:drop-shadow(0 0 4px var(--cyan));
+  }
+  @keyframes brand-pulse-draw{
+    0%{stroke-dashoffset:120}
+    50%{stroke-dashoffset:0}
+    100%{stroke-dashoffset:-120}
+  }
 
   .kicker{
     display:inline-flex;align-items:center;gap:9px;color:var(--cyan-soft);
     font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.78rem;margin-bottom:18px;
   }
-  .kicker::before{content:"";width:26px;height:2px;background:linear-gradient(90deg,var(--cyan),transparent);border-radius:2px}
+  .kicker::before{
+    content:"";width:28px;height:12px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 16'%3E%3Cpath d='M0,8 L10,8 L14,8 L18,1 L22,15 L25,5 L28,8 L40,8' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+    filter:drop-shadow(0 0 5px var(--cyan));
+    animation:kicker-pulse-anim 2s ease-in-out infinite alternate;
+  }
+  @keyframes kicker-pulse-anim{
+    0%{opacity:.6; transform:scaleX(0.95)}
+    100%{opacity:1; transform:scaleX(1.1)}
+  }
   h1{font-size:clamp(2.4rem,6vw,4.6rem);line-height:1.02;letter-spacing:-.02em;font-weight:800}
   h2{font-size:clamp(1.7rem,3.6vw,2.9rem);line-height:1.08;letter-spacing:-.01em;font-weight:800;margin-bottom:24px}
   .lead{font-size:clamp(1.05rem,1.7vw,1.4rem);color:var(--muted);max-width:52ch;line-height:1.55}
@@ -117,12 +214,63 @@
   .thresh .t{flex:1;min-width:150px;text-align:center;border-radius:14px;padding:16px;border:1px solid var(--card-brd)}
   .steps{counter-reset:s;display:flex;flex-direction:column;gap:12px;margin-top:4px}
   .steps li{list-style:none;display:flex;gap:16px;align-items:flex-start}
-  .steps li::before{counter-increment:s;content:counter(s);flex:none;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#04121f;font-weight:800;display:grid;place-items:center;font-size:.95rem}
+  .steps li::before{counter-increment:s;content:counter(s);flex:none;width:30px;height:30px;border-radius:99px;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#04121f;font-weight:800;display:grid;place-items:center;font-size:.95rem}
   .steps b{color:var(--ink)} .steps small{color:var(--muted);display:block;font-size:.9rem;margin-top:2px}
+
+  /* ---------- VS Code Dashboard Screenshot Mockup ---------- */
+  .vscode-window-mockup{
+    background:#0b1326; border:1px solid rgba(103,232,249,.28); border-radius:14px;
+    box-shadow:0 24px 60px -12px rgba(0,0,0,.75), 0 0 35px rgba(34,211,238,.12);
+    overflow:hidden; font-family:'Segoe UI',-apple-system,sans-serif;
+  }
+  .vscode-tb{
+    background:#070d1a; padding:10px 16px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .vscode-dots{display:flex; gap:7px}
+  .vscode-dot{width:11px; height:11px; border-radius:50%}
+  .vscode-dot.r{background:#ff5f57; box-shadow:0 0 6px rgba(255,95,87,.4)}
+  .vscode-dot.y{background:#febc2e; box-shadow:0 0 6px rgba(254,188,46,.4)}
+  .vscode-dot.g{background:#28c840; box-shadow:0 0 6px rgba(40,200,64,.4)}
+  .vscode-title{font-size:.76rem; font-weight:700; color:var(--muted); letter-spacing:.05em; display:flex; align-items:center; gap:8px}
+  .vscode-title span{color:var(--cyan-soft)}
+  .vscode-body{padding:18px; display:flex; flex-direction:column; gap:14px}
+  
+  .dash-hero-stat{
+    background:rgba(255,255,255,.035); border:1px solid rgba(103,232,249,.2); border-radius:12px; padding:14px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .dash-val{font-size:1.7rem; font-weight:800; line-height:1}
+  .dash-badge-green{background:rgba(52,211,153,.18); color:#6ee7b7; border:1px solid rgba(52,211,153,.35); padding:4px 10px; border-radius:99px; font-size:.74rem; font-weight:700}
+  
+  .dash-tier-row{display:flex; flex-direction:column; gap:10px; margin-top:4px}
+  .dash-tier-item{display:flex; flex-direction:column; gap:4px}
+  .dash-tier-meta{display:flex; justify-content:space-between; font-size:.78rem; font-weight:600}
+  .dash-progress{height:9px; background:rgba(255,255,255,.07); border-radius:99px; overflow:hidden; display:flex}
+  .dash-progress-fill{height:100%; border-radius:99px}
+
+  .dash-log-box{background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:10px}
+  .dash-log-row{background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:99px; border-radius:10px; padding:12px 14px; font-size:.82rem}
+  .dash-log-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
+  .dash-query{font-weight:600; color:var(--ink); font-size:.88rem}
+  .dash-breakdown{font-family:'SF Mono',Consolas,monospace; font-size:.73rem; color:var(--muted); margin-top:6px; display:flex; gap:12px; flex-wrap:wrap}
+  .dash-breakdown b{color:var(--cyan-soft)}
 </style>
 </head>
 <body>
 <div class="bar" id="bar"></div>
+
+<!-- Floating Copilot Pulse Badge on each page/slide -->
+<div class="top-pulse-badge">
+  <div class="top-pulse-dot-wrap">
+    <div class="top-pulse-ring"></div>
+    <div class="top-pulse-dot"></div>
+  </div>
+  <svg class="top-pulse-svg" viewBox="0 0 90 30" fill="none">
+    <path d="M0,15 L26,15 L33,15 L38,3 L44,27 L50,9 L54,15 L90,15"/>
+  </svg>
+  <span class="top-pulse-label">COPILOT <span class="grad">PULSE</span></span>
+</div>
 
 <div class="deck" id="deck">
 
@@ -155,6 +303,7 @@
 
   <!-- 2 · PROBLEM -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker">The problem</div>
     <h2>Copilot has many models.<br>You're probably using <span class="grad">one</span>.</h2>
     <div class="grid g3" style="margin-top:16px">
@@ -167,6 +316,7 @@
 
   <!-- 3 · SOLUTION -->
   <section class="slide center" style="align-items:center;text-align:center">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker" style="align-self:center">The solution</div>
     <h1 style="font-size:clamp(2rem,4.6vw,3.4rem);max-width:20ch">
       Pulse reads every prompt and routes it to the <span class="grad">optimal model</span> — then upgrades if it struggles.
@@ -176,6 +326,7 @@
 
   <!-- 4 · HOW IT WORKS -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker">How it works</div>
     <h2>A scoring engine in front of your models</h2>
     <div class="flow">
@@ -194,6 +345,7 @@
 
   <!-- 4b · DYNAMIC DISCOVERY -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker">Feature · Zero configuration</div>
     <h2>It learns <span class="grad">your</span> models automatically</h2>
     <div class="grid g3" style="margin-top:8px">
@@ -213,6 +365,7 @@
 
   <!-- 5 · TIERING -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker">Feature · Intelligent tiering</div>
     <h2>Tiers built from <span class="grad">your</span> subscription</h2>
     <div class="grid g3" style="margin-top:8px">
@@ -237,6 +390,7 @@
 
   <!-- 5b · THE ALGORITHM -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker">Under the hood · The routing algorithm</div>
     <h2>How a prompt finds its model</h2>
     <div class="split" style="grid-template-columns:1fr 1fr;gap:40px;align-items:start">
@@ -275,6 +429,7 @@
 
   <!-- 6 · ESCALATION (headline) -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="split">
       <div>
         <div class="kicker">Feature · The headline</div>
@@ -302,19 +457,155 @@
 
   <!-- 7 · DASHBOARD / SAVINGS -->
   <section class="slide">
-    <div class="kicker">Feature · Live dashboard</div>
-    <h2>See exactly what you're saving</h2>
-    <div class="grid g4" style="margin-top:8px">
-      <div class="card center"><div class="stat grad">0–10</div><div class="statlbl">complexity score, explained per signal</div></div>
-      <div class="card center"><div class="stat grad">%</div><div class="statlbl">savings rate — cheap vs. premium</div></div>
-      <div class="card center"><div class="stat grad">⭐</div><div class="statlbl">premium credits used vs. saved</div></div>
-      <div class="card center"><div class="stat grad">▤</div><div class="statlbl">live log of every routing decision</div></div>
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
+    <div class="split" style="grid-template-columns:1fr 1.15fr;gap:36px;align-items:center">
+      <div>
+        <div class="kicker">Feature · Live dashboard</div>
+        <h2 style="font-size:clamp(1.6rem,3.2vw,2.4rem);margin-bottom:16px">See exactly what you're saving in <span class="grad">real time</span></h2>
+        <div class="grid g2" style="gap:14px">
+          <div class="card center" style="padding:16px"><div class="stat grad" style="font-size:2rem">74.2%</div><div class="statlbl">savings rate</div></div>
+          <div class="card center" style="padding:16px"><div class="stat grad" style="font-size:2rem">4,120</div><div class="statlbl">queries routed</div></div>
+          <div class="card center" style="padding:16px"><div class="stat grad" style="font-size:2rem">1,840</div><div class="statlbl">credits saved</div></div>
+          <div class="card center" style="padding:16px"><div class="stat grad" style="font-size:2rem">100%</div><div class="statlbl">explainable</div></div>
+        </div>
+        <p class="lead" style="margin-top:20px;font-size:1rem">A dedicated side-panel dashboard displays real-time credit savings, model tier distribution, and score breakdowns for every request.</p>
+      </div>
+
+      <!-- VS Code Extension Panel Screenshot Mockup 1 -->
+      <div class="vscode-window-mockup">
+        <div class="vscode-tb">
+          <div class="vscode-dots">
+            <span class="vscode-dot r"></span>
+            <span class="vscode-dot y"></span>
+            <span class="vscode-dot g"></span>
+          </div>
+          <div class="vscode-title">
+            <span>⚡ COPILOT PULSE</span> — Live Analytics Dashboard
+          </div>
+          <span class="tag t-light" style="font-size:.65rem;padding:2px 8px">CONNECTED</span>
+        </div>
+        <div class="vscode-body">
+          <div class="dash-hero-stat">
+            <div>
+              <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700">Overall Savings Rate</div>
+              <div class="dash-val grad">74.2%</div>
+            </div>
+            <div style="text-align:right">
+              <span class="dash-badge-green">▲ +18.4% vs direct</span>
+              <div style="font-size:.72rem;color:var(--muted);margin-top:4px">1,840 / 2,480 credits saved</div>
+            </div>
+          </div>
+
+          <div class="dash-tier-row">
+            <div style="font-size:.76rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Model Tier Distribution</div>
+            
+            <div class="dash-tier-item">
+              <div class="dash-tier-meta">
+                <span style="color:#6ee7b7">● LIGHT TIER (gpt-4o-mini, flash)</span>
+                <span>2,570 queries (62.4%)</span>
+              </div>
+              <div class="dash-progress">
+                <div class="dash-progress-fill" style="width:62.4%;background:linear-gradient(90deg,#34d399,#10b981)"></div>
+              </div>
+            </div>
+
+            <div class="dash-tier-item">
+              <div class="dash-tier-meta">
+                <span style="color:#fcd34d">● MEDIUM TIER (o3-mini, gpt-4o)</span>
+                <span>1,136 queries (27.6%)</span>
+              </div>
+              <div class="dash-progress">
+                <div class="dash-progress-fill" style="width:27.6%;background:linear-gradient(90deg,#fbbf24,#f59e0b)"></div>
+              </div>
+            </div>
+
+            <div class="dash-tier-item">
+              <div class="dash-tier-meta">
+                <span style="color:#c4b5fd">● HEAVY TIER (claude-3.5-sonnet, o1)</span>
+                <span>414 queries (10.0%)</span>
+              </div>
+              <div class="dash-progress">
+                <div class="dash-progress-fill" style="width:10.0%;background:linear-gradient(90deg,#a78bfa,#8b5cf6)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <p class="lead" style="margin-top:28px">Every decision is <b style="color:var(--ink)">transparent</b> — the score breakdown behind each route is one click away.</p>
+  </section>
+
+  <!-- 7b · LIVE LOG SCREENSHOT -->
+  <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
+    <div class="split" style="grid-template-columns:1.15fr 1fr;gap:36px;align-items:center">
+      <!-- VS Code Extension Panel Screenshot Mockup 2 -->
+      <div class="vscode-window-mockup">
+        <div class="vscode-tb">
+          <div class="vscode-dots">
+            <span class="vscode-dot r"></span>
+            <span class="vscode-dot y"></span>
+            <span class="vscode-dot g"></span>
+          </div>
+          <div class="vscode-title">
+            <span>⚡ COPILOT PULSE</span> — Live Decision Log &amp; Score Telemetry
+          </div>
+          <span class="tag t-med" style="font-size:.65rem;padding:2px 8px">REAL-TIME</span>
+        </div>
+        <div class="vscode-body" style="padding:14px">
+          <div class="dash-log-box">
+            
+            <div class="dash-log-row" style="border-left:3px solid #a78bfa">
+              <div class="dash-log-top">
+                <span class="dash-query">"Refactor AsyncExportService for deadlocks"</span>
+                <span class="tag t-heavy">HEAVY · 8.4/10</span>
+              </div>
+              <div style="font-size:.75rem;color:#fcd34d;margin-top:2px">⬆️ Auto-escalated from Medium (stuck turn 2)</div>
+              <div class="dash-breakdown">
+                <span>Intent: <b>3.5</b></span> · <span>Code: <b>2.2</b></span> · <span>Structure: <b>1.5</b></span> · <span>Boost: <b>+1.2</b></span>
+              </div>
+            </div>
+
+            <div class="dash-log-row" style="border-left:3px solid #6ee7b7">
+              <div class="dash-log-top">
+                <span class="dash-query">"Fix syntax error on line 42 in home.component.ts"</span>
+                <span class="tag t-light">LIGHT · 1.8/10</span>
+              </div>
+              <div style="font-size:.75rem;color:#6ee7b7;margin-top:2px">⚡ Routed to gpt-4o-mini (Saved 1 credit)</div>
+              <div class="dash-breakdown">
+                <span>Intent: <b>1.2</b></span> · <span>Code: <b>0.6</b></span> · <span>Keywords: <b>0.0</b></span>
+              </div>
+            </div>
+
+            <div class="dash-log-row" style="border-left:3px solid #fcd34d">
+              <div class="dash-log-top">
+                <span class="dash-query">"Now write unit tests covering all edge cases"</span>
+                <span class="tag t-med">MEDIUM · 5.4/10</span>
+              </div>
+              <div style="font-size:.75rem;color:var(--muted);margin-top:2px">🔄 Conversation stickiness applied (+2.5 boost)</div>
+              <div class="dash-breakdown">
+                <span>Base Score: <b>2.9</b></span> · <span>History Stickiness: <b>+2.5</b></span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="kicker">Feature · Explainable AI</div>
+        <h2 style="font-size:clamp(1.6rem,3.2vw,2.4rem);margin-bottom:16px">Complete transparency into every decision</h2>
+        <ul class="clean big-list">
+          <li><b>Instant decision feed</b> — see prompt scoring as you type.</li>
+          <li><b>Signal breakdown</b> — view exact weight contributed by intent, code structure, tools, and history.</li>
+          <li><b>Escalation alerts</b> — see when and why Pulse automatically upgraded to a stronger model.</li>
+        </ul>
+      </div>
+    </div>
   </section>
 
   <!-- 8 · RELIABILITY -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker">Built to be trusted</div>
     <h2>Robust when things go wrong</h2>
     <div class="grid g2" style="margin-top:8px">
@@ -327,6 +618,7 @@
 
   <!-- 9 · QUALITY -->
   <section class="slide center" style="align-items:center;text-align:center">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker" style="align-self:center">Quality bar</div>
     <h2>Certified before shipping</h2>
     <div class="grid g4" style="margin-top:6px;width:100%">
@@ -340,6 +632,7 @@
 
   <!-- 10 · HOW TO USE -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker">Try it in 30 seconds</div>
     <h2>No config. No API key.</h2>
     <div class="grid g3" style="margin-top:8px">
@@ -357,6 +650,7 @@
 
   <!-- 11 · ROADMAP -->
   <section class="slide">
+    <svg class="slide-bg-wave" viewBox="0 0 1400 200" preserveAspectRatio="none"><path d="M0,100 L500,100 L540,100 L580,30 L630,170 L670,70 L710,100 L1400,100"/></svg>
     <div class="kicker">What's next</div>
     <h2>Roadmap</h2>
     <div class="grid g3" style="margin-top:8px">
